@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-app1
+  labels:
+    app: springboot-app1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: springboot-app1
+  template:
+    metadata:
+      labels:
+        app: springboot-app1
+    spec:
+      containers:
+      - name: springboot-app1
+        image: test-reg.azurecr.io/app1-image:v1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:sqlserver://<SQL_SERVER_FQDN>:1433;database=springbootdb;"
+        - name: SPRING_DATASOURCE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secrets
+              key: username
+        - name: SPRING_DATASOURCE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mssql-secrets
+              key: password
+
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka-hh.brokerlist:9092" 
+        - name: KAFKA_SECURITY_PROTOCOL
+          value: "SASL_SSL" 
+        - name: KAFKA_SASL_MECHANISM
+          value: "PLAIN"
+        - name: KAFKA_SASL_JAAS_CONFIG
+          valueFrom:
+            secretKeyRef:
+              name: kafka-secrets
+              key: sasl_jaas_config
